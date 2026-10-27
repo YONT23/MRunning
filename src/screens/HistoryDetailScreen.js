@@ -126,6 +126,14 @@ export default function HistoryDetailScreen({ navigation, route }) {
               <Text style={styles.extra}>Precisión GPS media: ±{entry.avgAccuracy} m</Text>
             ) : null}
 
+            <TouchableOpacity
+              style={styles.shareBtn}
+              onPress={() => navigation.navigate('ShareCards', { id })}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.shareBtnText}>Tarjetas para compartir (PNG)</Text>
+            </TouchableOpacity>
+
             <Text style={styles.sectionLabel}>PARCIALES POR KM</Text>
             <View style={styles.card}>
               <SplitsChart splits={entry.splits} />
@@ -155,8 +163,6 @@ export default function HistoryDetailScreen({ navigation, route }) {
   );
 }
 
-// Resumen de la comparación: mejora frente a la carrera anterior y frente al
-// mejor registro de distancia similar. Positivo = mejora.
 function ComparisonBox({ comparison }) {
   if (!comparison) return <Text style={styles.muted}>Sin datos para comparar.</Text>;
   const { vsLast, best } = comparison;
@@ -177,7 +183,6 @@ function ComparisonBox({ comparison }) {
       ) : (
         <Text style={styles.muted}>Es tu primera carrera registrada.</Text>
       )}
-
       {best ? (
         <View style={styles.block}>
           <Text style={styles.blockTitle}>
@@ -217,12 +222,7 @@ function Field({ label, value, onChangeText, keyboardType }) {
 }
 
 const styles = StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: spacing.md,
-  },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: spacing.md },
   back: { color: colors.blue, fontSize: 16 },
   title: { color: colors.white, fontSize: 17, fontWeight: '700' },
   editLink: { color: colors.blue, fontSize: 15, fontWeight: '600' },
@@ -240,13 +240,15 @@ const styles = StyleSheet.create({
   statValue: { color: colors.white, fontSize: 20, fontWeight: '800' },
   statLabel: { color: colors.textMuted, fontSize: 10, marginTop: 4, letterSpacing: 0.5 },
   extra: { color: colors.textMuted, fontSize: 12, textAlign: 'center', marginTop: 4 },
-  sectionLabel: {
-    color: colors.textMuted,
-    fontSize: 11,
-    letterSpacing: 0.5,
-    marginTop: spacing.xl,
-    marginBottom: spacing.sm,
+  shareBtn: {
+    backgroundColor: colors.blue,
+    paddingVertical: 14,
+    borderRadius: radius.pill,
+    alignItems: 'center',
+    marginTop: spacing.lg,
   },
+  shareBtnText: { color: colors.white, fontWeight: '700', fontSize: 15 },
+  sectionLabel: { color: colors.textMuted, fontSize: 11, letterSpacing: 0.5, marginTop: spacing.xl, marginBottom: spacing.sm },
   card: {
     backgroundColor: colors.bgElevated,
     borderWidth: 1,
@@ -258,13 +260,7 @@ const styles = StyleSheet.create({
   blockTitle: { color: colors.white, fontSize: 14, fontWeight: '700' },
   delta: { fontSize: 26, fontWeight: '800', marginVertical: 4 },
   muted: { color: colors.textMuted, fontSize: 13, marginTop: 2 },
-  fieldLabel: {
-    color: colors.textMuted,
-    fontSize: 12,
-    marginBottom: spacing.xs,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
+  fieldLabel: { color: colors.textMuted, fontSize: 12, marginBottom: spacing.xs, textTransform: 'uppercase', letterSpacing: 0.5 },
   input: {
     backgroundColor: colors.bgElevated,
     borderWidth: 1,
@@ -276,13 +272,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  saveBtn: {
-    backgroundColor: colors.blue,
-    paddingVertical: 15,
-    borderRadius: radius.pill,
-    alignItems: 'center',
-    marginTop: spacing.xl,
-  },
+  saveBtn: { backgroundColor: colors.blue, paddingVertical: 15, borderRadius: radius.pill, alignItems: 'center', marginTop: spacing.xl },
   saveText: { color: colors.white, fontWeight: '700', fontSize: 15 },
   deleteBtn: { alignItems: 'center', paddingVertical: spacing.lg },
   deleteText: { color: colors.red, fontSize: 14, fontWeight: '600' },

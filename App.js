@@ -13,6 +13,7 @@ import SettingsScreen from './src/screens/SettingsScreen';
 import ActivityTypeScreen from './src/screens/ActivityTypeScreen';
 import TrackingScreen from './src/screens/TrackingScreen';
 import HistoryDetailScreen from './src/screens/HistoryDetailScreen';
+import ShareCardsScreen from './src/screens/ShareCardsScreen';
 import MainTabs from './src/navigation/MainTabs';
 import { getOnboarded } from './src/store/settingsStore';
 import { colors } from './src/theme/colors';
@@ -47,6 +48,7 @@ export default function App() {
           <Stack.Screen name="ActivityType" component={ActivityTypeScreen} />
           <Stack.Screen name="Tracking" component={TrackingScreen} />
           <Stack.Screen name="HistoryDetail" component={HistoryDetailScreen} />
+          <Stack.Screen name="ShareCards" component={ShareCardsScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaProvider>
