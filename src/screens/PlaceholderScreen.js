@@ -3,20 +3,36 @@ import { View, Text, StyleSheet } from 'react-native';
 import ScreenContainer from '../components/ScreenContainer';
 import { colors, spacing } from '../theme/colors';
 
-// Pantalla provisional para las pestañas que llegan en partes siguientes.
-export default function PlaceholderScreen({ title }) {
+export default function PlaceholderScreen({
+  title = 'Próximamente',
+}) {
   return (
     <ScreenContainer>
-      <View style={styles.header}>
+      <View style={styles.body}>
         <Text style={styles.title}>{title}</Text>
+        <Text style={styles.note}>
+          Estamos preparando esta sección de MRunning.
+        </Text>
       </View>
-      <Text style={styles.text}>Esta sección llega pronto.</Text>
     </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  header: { paddingVertical: spacing.md },
-  title: { color: colors.white, fontSize: 24, fontWeight: '800' },
-  text: { color: colors.textMuted, fontSize: 14, marginTop: spacing.lg },
+  body: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.lg,
+  },
+  title: {
+    color: colors.white,
+    fontSize: 24,
+    fontWeight: '800',
+  },
+  note: {
+    color: colors.textMuted,
+    marginTop: 12,
+    textAlign: 'center',
+  },
 });

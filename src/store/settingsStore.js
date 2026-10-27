@@ -24,3 +24,25 @@ export async function getLastActivity() {
 export async function setLastActivity(type) {
   await AsyncStorage.setItem(LAST_ACTIVITY_KEY, type);
 }
+
+// Meta semanal en kilómetros
+const WEEKLY_GOAL_KEY = 'mrunning_weekly_goal_km';
+
+export async function getWeeklyGoalKm() {
+  const raw = await AsyncStorage.getItem(WEEKLY_GOAL_KEY);
+  const n = Number(raw);
+
+  return raw && Number.isFinite(n) && n >= 1 && n <= 500
+    ? n
+    : 25;
+}
+
+export async function setWeeklyGoalKm(km) {
+  const n = Number(km);
+
+  if (!Number.isFinite(n) || n < 1 || n > 500) {
+    throw new Error('Meta inválida');
+  }
+
+  await AsyncStorage.setItem(WEEKLY_GOAL_KEY, String(n));
+}
