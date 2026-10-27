@@ -14,6 +14,7 @@ import {
   clearSessionClock,
   getElapsedSeconds,
 } from '../store/runStore';
+import { addRun } from '../store/historyStore';
 import { getUnits } from '../store/settingsStore';
 import { computeDistanceWithStats, formatDistance, formatDuration, formatPace } from '../utils/haversine';
 import { colors, spacing, radius } from '../theme/colors';
@@ -35,18 +36,6 @@ export default function TrackingScreen({ navigation, route }) {
   const pointsTimer = useRef(null);
   const clockTimer = useRef(null);
 
-  useEffect(() => {
-    getUnits().then(setUnitsState);
-    // Si la app se cerró o se reinició con un recorrido en curso, se retoma.
-    (async () => {
-      const s = await getStatus();
-      if (s === 'running' || s === 'paused') {
-        setRunState(s);
-        await refreshFromStore();
-      }
-    })();
-  }, []);
-
   const refreshFromStore = useCallback(async () => {
     const pts = await getPoints();
     const stats = computeDistanceWithStats(pts);
@@ -54,6 +43,18 @@ export default function TrackingScreen({ navigation, route }) {
     setGps(stats);
     setElapsed(await getElapsedSeconds());
   }, []);
+
+  useEffect(() => {
+    getUnits().then(setUnitsState);
+    // Si la app se cerró con un recorrido en curso, se retoma.
+    (async () => {
+      const s = await getStatus();
+      if (s === 'running' || s === 'paused') {
+        setRunState(s);
+        await refreshFromStore();
+      }
+    })();
+  }, [refreshFromStore]);
 
   // Al volver a la app desde segundo plano, se actualiza todo de inmediato.
   useEffect(() => {
@@ -66,8 +67,7 @@ export default function TrackingScreen({ navigation, route }) {
     return () => sub.remove();
   }, [refreshFromStore]);
 
-  // Mientras corre: el cronómetro se actualiza cada segundo y la distancia
-  // cada 2 segundos.
+  // Mientras corre: cronómetro cada segundo y distancia cada 2 segundos.
   useEffect(() => {
     if (runState !== 'running') {
       clearInterval(pointsTimer.current);
@@ -150,19 +150,25 @@ export default function TrackingScreen({ navigation, route }) {
     setRunState('running');
   };
 
+  // Detiene el GPS, guarda el recorrido en el historial y muestra el resumen.
   const doFinish = async () => {
     try {
       await setStatus('idle');
       const started = await Location.hasStartedLocationUpdatesAsync(LOCATION_TASK_NAME);
       if (started) await Location.stopLocationUpdatesAsync(LOCATION_TASK_NAME);
       const finalElapsed = await getElapsedSeconds();
-      const finalDistance = computeDistanceWithStats(await getPoints()).totalMeters;
+      const finalPoints = await getPoints();
+      const finalDistance = computeDistanceWithStats(finalPoints).totalMeters;
       await clearSessionClock();
+      if (finalDistance > 0 && finalElapsed > 0) {
+        await addRun({ distance: finalDistance, elapsed: finalElapsed, activityType, points: finalPoints });
+      }
+      await clearPoints();
       setRunState('idle');
       setElapsed(finalElapsed);
       setDistance(finalDistance);
       Alert.alert(
-        'Recorrido terminado',
+        'Recorrido guardado',
         `${formatDistance(finalDistance)} km · ${formatDuration(finalElapsed)} · ${formatPace(finalDistance, finalElapsed)} /km`,
         [{ text: 'OK', onPress: () => navigation.popToTop() }]
       );
@@ -273,12 +279,7 @@ const styles = StyleSheet.create({
   statLabel: { color: colors.textMuted, fontSize: 12, marginTop: 4 },
   diag: { color: colors.textFaint, fontSize: 11, marginTop: spacing.lg, textAlign: 'center' },
   controls: { flexDirection: 'row', gap: spacing.md, marginBottom: spacing.md },
-  button: {
-    flex: 1,
-    paddingVertical: 17,
-    borderRadius: radius.pill,
-    alignItems: 'center',
-  },
+  button: { flex: 1, paddingVertical: 17, borderRadius: radius.pill, alignItems: 'center' },
   buttonOutline: { borderWidth: 1.5, borderColor: colors.border },
   buttonText: { color: colors.white, fontWeight: '700', fontSize: 16 },
   hint: { color: colors.textFaint, fontSize: 12, textAlign: 'center', marginBottom: spacing.lg },

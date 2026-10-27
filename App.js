@@ -5,14 +5,14 @@ import { StatusBar } from 'expo-status-bar';
 import { View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-// Debe importarse una vez en la raíz para registrar el task de ubicación
-// antes de que el usuario inicie un recorrido.
+// Debe importarse una vez en la raíz para registrar el task de ubicación.
 import './src/tasks/locationTask';
 
 import WelcomeScreen from './src/screens/WelcomeScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import ActivityTypeScreen from './src/screens/ActivityTypeScreen';
 import TrackingScreen from './src/screens/TrackingScreen';
+import HistoryDetailScreen from './src/screens/HistoryDetailScreen';
 import MainTabs from './src/navigation/MainTabs';
 import { getOnboarded } from './src/store/settingsStore';
 import { colors } from './src/theme/colors';
@@ -46,6 +46,7 @@ export default function App() {
           <Stack.Screen name="MainTabs" component={MainTabs} />
           <Stack.Screen name="ActivityType" component={ActivityTypeScreen} />
           <Stack.Screen name="Tracking" component={TrackingScreen} />
+          <Stack.Screen name="HistoryDetail" component={HistoryDetailScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaProvider>
