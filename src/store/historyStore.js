@@ -1,9 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { smoothPoints } from '../utils/haversine';
+import { computeSplits, computeElevationGain, averageAccuracy } from '../utils/analysis';
 
 const HISTORY_KEY = 'rbt_run_history';
 const MAX_ENTRIES = 100;
-const MAX_ROUTE_POINTS = 60; // suficiente para dibujar la ruta en miniatura
+const MAX_ROUTE_POINTS = 60;
 
 function downsample(points, max) {
   if (!points || points.length <= max) return points || [];
@@ -21,8 +22,7 @@ export async function getHistory() {
   return raw ? JSON.parse(raw) : [];
 }
 
-// Guarda un recorrido terminado. Se guarda una versión reducida de la ruta
-// para poder dibujarla sin ocupar demasiado espacio.
+// Guarda un recorrido terminado con sus parciales, desnivel y precisión GPS.
 export async function addRun({ distance, elapsed, activityType, points }) {
   const history = await getHistory();
   const entry = {
@@ -32,6 +32,9 @@ export async function addRun({ distance, elapsed, activityType, points }) {
     elapsed, // segundos
     activityType,
     routePreview: downsample(smoothPoints(points), MAX_ROUTE_POINTS),
+    splits: computeSplits(points),
+    elevationGain: computeElevationGain(points),
+    avgAccuracy: averageAccuracy(points),
   };
   const updated = [entry, ...history].slice(0, MAX_ENTRIES);
   await AsyncStorage.setItem(HISTORY_KEY, JSON.stringify(updated));
@@ -42,8 +45,8 @@ export async function clearHistory() {
   await AsyncStorage.removeItem(HISTORY_KEY);
 }
 
-// Corrige una entrada (por ejemplo con datos de Strava). Si cambia la
-// distancia, los datos derivados del GPS original se borran.
+// Si cambia la distancia, los parciales y el desnivel del GPS original ya no
+// corresponden, así que se borran.
 export async function updateRun(id, updates) {
   const history = await getHistory();
   const idx = history.findIndex((e) => e.id === id);

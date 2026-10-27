@@ -2,7 +2,9 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, ScrollView } from 'react-native';
 import ScreenContainer from '../components/ScreenContainer';
 import RoutePreview from '../components/RoutePreview';
+import SplitsChart from '../components/SplitsChart';
 import { getHistory, updateRun, deleteRun } from '../store/historyStore';
+import { compareRuns } from '../utils/analysis';
 import { formatDistance, formatDuration, formatPace } from '../utils/haversine';
 import { colors, spacing, radius } from '../theme/colors';
 
@@ -14,7 +16,6 @@ function formatLong(iso) {
   return `${d.getDate()} de ${MONTHS[d.getMonth()]} · ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-// Fecha editable con formato dd/mm/aaaa hh:mm
 function formatWhen(iso) {
   const d = new Date(iso);
   const pad = (n) => String(n).padStart(2, '0');
@@ -28,7 +29,6 @@ function parseWhen(text) {
   return isNaN(d.getTime()) ? null : d.toISOString();
 }
 
-// Acepta mm:ss o h:mm:ss. Devuelve segundos o NaN.
 function parseTime(text) {
   const parts = text.trim().split(':').map((p) => Number(p));
   if (parts.some((n) => isNaN(n) || n < 0)) return NaN;
@@ -40,6 +40,7 @@ function parseTime(text) {
 export default function HistoryDetailScreen({ navigation, route }) {
   const { id } = route.params;
   const [entry, setEntry] = useState(null);
+  const [comparison, setComparison] = useState(null);
   const [editing, setEditing] = useState(false);
   const [km, setKm] = useState('');
   const [time, setTime] = useState('');
@@ -50,6 +51,7 @@ export default function HistoryDetailScreen({ navigation, route }) {
     const e = h.find((x) => x.id === id) || null;
     setEntry(e);
     if (e) {
+      setComparison(compareRuns(e, h));
       setKm((e.distance / 1000).toFixed(2));
       setTime(formatDuration(e.elapsed));
       setWhen(formatWhen(e.date));
@@ -69,10 +71,7 @@ export default function HistoryDetailScreen({ navigation, route }) {
     const secs = parseTime(time);
     const iso = parseWhen(when);
     if (isNaN(kmNum) || kmNum <= 0 || isNaN(secs) || secs <= 0 || !iso) {
-      Alert.alert(
-        'Revisa los datos',
-        'Distancia en km, tiempo como mm:ss o h:mm:ss y fecha como dd/mm/aaaa hh:mm.'
-      );
+      Alert.alert('Revisa los datos', 'Distancia en km, tiempo como mm:ss o h:mm:ss y fecha como dd/mm/aaaa hh:mm.');
       return;
     }
     await updateRun(id, { distance: kmNum * 1000, elapsed: secs, date: iso });
@@ -119,6 +118,24 @@ export default function HistoryDetailScreen({ navigation, route }) {
               <Stat label="TIEMPO" value={formatDuration(entry.elapsed)} />
               <Stat label="RITMO" value={`${formatPace(entry.distance, entry.elapsed)} /km`} />
             </View>
+
+            {entry.elevationGain != null && entry.elevationGain > 0 ? (
+              <Text style={styles.extra}>Desnivel positivo: {entry.elevationGain} m</Text>
+            ) : null}
+            {entry.avgAccuracy != null ? (
+              <Text style={styles.extra}>Precisión GPS media: ±{entry.avgAccuracy} m</Text>
+            ) : null}
+
+            <Text style={styles.sectionLabel}>PARCIALES POR KM</Text>
+            <View style={styles.card}>
+              <SplitsChart splits={entry.splits} />
+            </View>
+
+            <Text style={styles.sectionLabel}>COMPARACIÓN</Text>
+            <View style={styles.card}>
+              <ComparisonBox comparison={comparison} />
+            </View>
+
             <TouchableOpacity style={styles.deleteBtn} onPress={confirmDelete}>
               <Text style={styles.deleteText}>Eliminar recorrido</Text>
             </TouchableOpacity>
@@ -135,6 +152,43 @@ export default function HistoryDetailScreen({ navigation, route }) {
         )}
       </ScrollView>
     </ScreenContainer>
+  );
+}
+
+// Resumen de la comparación: mejora frente a la carrera anterior y frente al
+// mejor registro de distancia similar. Positivo = mejora.
+function ComparisonBox({ comparison }) {
+  if (!comparison) return <Text style={styles.muted}>Sin datos para comparar.</Text>;
+  const { vsLast, best } = comparison;
+  return (
+    <View>
+      {vsLast ? (
+        <View style={styles.block}>
+          <Text style={styles.blockTitle}>
+            {vsLast.paceImprovement >= 0 ? 'Mejoraste' : 'Más lento'} frente a tu carrera anterior
+          </Text>
+          <Text style={[styles.delta, { color: vsLast.paceImprovement >= 0 ? colors.blue : colors.red }]}>
+            {vsLast.paceImprovement >= 0 ? '▲' : '▼'} {Math.abs(Math.round(vsLast.paceImprovement))} s/km
+          </Text>
+          <Text style={styles.muted}>
+            {vsLast.timeSaved >= 0 ? 'Ahorraste' : 'Perdiste'} {Math.abs(Math.round(vsLast.timeSaved))} s en esta distancia
+          </Text>
+        </View>
+      ) : (
+        <Text style={styles.muted}>Es tu primera carrera registrada.</Text>
+      )}
+
+      {best ? (
+        <View style={styles.block}>
+          <Text style={styles.blockTitle}>
+            {best.isNewRecord ? '¡Nuevo récord en esta distancia!' : 'Tu mejor registro en esta distancia'}
+          </Text>
+          <Text style={styles.muted}>Mejor ritmo anterior: {formatPace(1000, best.pace)} /km</Text>
+        </View>
+      ) : (
+        <Text style={styles.muted}>Primer registro de esta distancia.</Text>
+      )}
+    </View>
   );
 }
 
@@ -182,9 +236,28 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   dateText: { color: colors.textMuted, fontSize: 13, textAlign: 'center', marginBottom: spacing.md },
-  statsRow: { flexDirection: 'row', marginBottom: spacing.xl },
+  statsRow: { flexDirection: 'row', marginBottom: spacing.md },
   statValue: { color: colors.white, fontSize: 20, fontWeight: '800' },
   statLabel: { color: colors.textMuted, fontSize: 10, marginTop: 4, letterSpacing: 0.5 },
+  extra: { color: colors.textMuted, fontSize: 12, textAlign: 'center', marginTop: 4 },
+  sectionLabel: {
+    color: colors.textMuted,
+    fontSize: 11,
+    letterSpacing: 0.5,
+    marginTop: spacing.xl,
+    marginBottom: spacing.sm,
+  },
+  card: {
+    backgroundColor: colors.bgElevated,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.lg,
+    padding: spacing.lg,
+  },
+  block: { marginBottom: spacing.md },
+  blockTitle: { color: colors.white, fontSize: 14, fontWeight: '700' },
+  delta: { fontSize: 26, fontWeight: '800', marginVertical: 4 },
+  muted: { color: colors.textMuted, fontSize: 13, marginTop: 2 },
   fieldLabel: {
     color: colors.textMuted,
     fontSize: 12,
