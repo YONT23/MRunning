@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import ScreenContainer from '../components/ScreenContainer';
 import { setLastActivity } from '../store/settingsStore';
 import { colors, spacing, radius } from '../theme/colors';
@@ -7,8 +7,7 @@ import { colors, spacing, radius } from '../theme/colors';
 export default function ActivityTypeScreen({ navigation }) {
   const choose = async (type) => {
     await setLastActivity(type);
-    // El registro en vivo se conecta en la siguiente actualización.
-    Alert.alert('Próximamente', 'El registro en vivo llega en la siguiente actualización.');
+    navigation.navigate('Tracking', { activityType: type });
   };
 
   return (
