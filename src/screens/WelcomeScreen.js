@@ -7,7 +7,7 @@ import { colors, spacing, radius } from '../theme/colors';
 export default function WelcomeScreen({ navigation }) {
   const start = async () => {
     await setOnboarded();
-    navigation.replace('Home');
+    navigation.replace('MainTabs');
   };
 
   return (

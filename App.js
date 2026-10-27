@@ -6,7 +6,8 @@ import { View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import WelcomeScreen from './src/screens/WelcomeScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
-import HomeScreen from './src/screens/HomeScreen';
+import ActivityTypeScreen from './src/screens/ActivityTypeScreen';
+import MainTabs from './src/navigation/MainTabs';
 import { getOnboarded } from './src/store/settingsStore';
 import { colors } from './src/theme/colors';
 
@@ -16,7 +17,7 @@ export default function App() {
   const [initialRoute, setInitialRoute] = useState(null);
 
   useEffect(() => {
-    getOnboarded().then((done) => setInitialRoute(done ? 'Home' : 'Welcome'));
+    getOnboarded().then((done) => setInitialRoute(done ? 'MainTabs' : 'Welcome'));
   }, []);
 
   if (!initialRoute) {
@@ -36,12 +37,9 @@ export default function App() {
           }}
         >
           <Stack.Screen name="Welcome" component={WelcomeScreen} />
-          <Stack.Screen
-            name="Settings"
-            component={SettingsScreen}
-            options={{ presentation: 'modal' }}
-          />
-          <Stack.Screen name="Home" component={HomeScreen} />
+          <Stack.Screen name="Settings" component={SettingsScreen} options={{ presentation: 'modal' }} />
+          <Stack.Screen name="MainTabs" component={MainTabs} />
+          <Stack.Screen name="ActivityType" component={ActivityTypeScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaProvider>
