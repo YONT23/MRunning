@@ -4,6 +4,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import HomeScreen from '../screens/HomeScreen';
 import HistoryScreen from '../screens/HistoryScreen';
 import PlaceholderScreen from '../screens/PlaceholderScreen';
+import ProgressScreen from '../screens/ProgressScreen';
 import TabBar from '../components/TabBar';
 import { colors } from '../theme/colors';
 
@@ -30,7 +31,7 @@ export default function MainTabs() {
         component={EmptyScreen}
         listeners={{ tabPress: (e) => e.preventDefault() }}
       />
-      <Tab.Screen name="Progreso">{() => <PlaceholderScreen title="Progreso" />}</Tab.Screen>
+      <Tab.Screen name="Progreso" component={ProgressScreen} />
       <Tab.Screen name="Perfil">{() => <PlaceholderScreen title="Perfil" />}</Tab.Screen>
     </Tab.Navigator>
   );
