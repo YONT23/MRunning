@@ -23,6 +23,7 @@ const MShotExport = forwardRef(
       points,
       photoUri,
       kind,
+      transparent = false,
     },
     ref
   ) {
@@ -56,7 +57,7 @@ const MShotExport = forwardRef(
           }}
         >
           <View
-            style={styles.canvas}
+            style={[styles.canvas, transparent && styles.transparentCanvas]}
             collapsable={false}
           >
             <View
@@ -68,6 +69,7 @@ const MShotExport = forwardRef(
                 points={points}
                 photoUri={photoUri}
                 kind={kind}
+                transparent={transparent}
               />
             </View>
           </View>
@@ -80,6 +82,10 @@ const MShotExport = forwardRef(
 export default MShotExport;
 
 const styles = StyleSheet.create({
+  transparentCanvas: {
+    backgroundColor: 'transparent',
+  },
+
   container: {
     position: 'absolute',
     left: -2000,

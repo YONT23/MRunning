@@ -29,6 +29,7 @@ import MShotExport from '../components/MShotExport';
 const BLUE = '#2E6BFF';
 
 const TEMPLATES = [
+  ['dataOnly', 'Solo datos'],
   ['route', 'Ruta GPS'],
   ['routeStats', 'Ruta + datos'],
   ['stats', 'Estadísticas'],
@@ -51,6 +52,7 @@ export default function ShareCardsScreen({
   const [photoUri, setPhotoUri] = useState(null);
   const [index, setIndex] = useState(0);
   const [saving, setSaving] = useState(false);
+  const [transparent, setTransparent] = useState(true);
 
   const shotRef = useRef(null);
   const exportRef = useRef(null);
@@ -277,6 +279,8 @@ export default function ShareCardsScreen({
                 points={points}
                 photoUri={photoUri}
                 kind={TEMPLATES[index][0]}
+        transparent={transparent}
+                transparent={transparent}
               />
             </ViewShot>
           </View>
@@ -301,6 +305,26 @@ export default function ShareCardsScreen({
         photoUri={photoUri}
         kind={TEMPLATES[index][0]}
       />
+
+      <TouchableOpacity
+        onPress={() => setTransparent(value => !value)}
+        style={{
+          alignSelf: 'center',
+          paddingVertical: 10,
+          paddingHorizontal: 20,
+          marginBottom: 8,
+          borderRadius: 20,
+          backgroundColor: transparent
+            ? '#2E6BFF'
+            : '#202631',
+        }}
+      >
+        <Text style={{color: '#FFFFFF', fontWeight: '800'}}>
+          {transparent
+            ? '✓ Fondo transparente'
+            : 'Fondo negro'}
+        </Text>
+      </TouchableOpacity>
 
       <View style={styles.actions}>
         <TouchableOpacity

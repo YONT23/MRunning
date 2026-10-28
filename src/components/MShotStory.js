@@ -110,6 +110,7 @@ export default function MShotStory({
   points,
   photoUri,
   kind,
+  transparent = false,
 }) {
   const distance = Number(entry?.distance) || 0;
   const elapsed = Number(entry?.elapsed) || 0;
@@ -132,7 +133,7 @@ export default function MShotStory({
 
   return (
     <View
-      style={styles.story}
+      style={[styles.story, transparent && styles.transparentStory]}
       collapsable={false}
     >
       {photoUri && (
@@ -143,7 +144,7 @@ export default function MShotStory({
         />
       )}
 
-      <View
+      {!transparent && <View
         style={[
           StyleSheet.absoluteFillObject,
           {
@@ -152,9 +153,9 @@ export default function MShotStory({
               : '#0A0C10',
           },
         ]}
-      />
+      />}
 
-      <View style={styles.top}>
+      {kind !== 'dataOnly' && <View style={styles.top}>
         <Text style={styles.brand}>
           MRUNNING
         </Text>
@@ -162,7 +163,42 @@ export default function MShotStory({
         <Text style={styles.subtitle}>
           PREMIUM MOTION · MSHOT
         </Text>
-      </View>
+      </View>}
+
+      {kind === 'dataOnly' && (
+        <View style={styles.dataOnlyWrap}>
+          <View style={styles.dataOnlyGroup}>
+            <View style={styles.slashes}>
+              <Text style={styles.slashText}>╱\n╱\n╱</Text>
+            </View>
+            <View style={styles.dataOnlyText}>
+              <Text style={styles.dataOnlyNumber}>{km}</Text>
+              <Text style={styles.dataOnlyLabel}>DISTANCIA</Text>
+            </View>
+          </View>
+          <View style={styles.dataOnlyGroup}>
+            <View style={styles.slashes}>
+              <Text style={styles.slashText}>╱\n╱\n╱</Text>
+            </View>
+            <View style={styles.dataOnlyText}>
+              <Text style={styles.dataOnlyNumber}>{time}</Text>
+              <Text style={styles.dataOnlyLabel}>TIEMPO</Text>
+            </View>
+          </View>
+          <View style={styles.dataOnlyGroup}>
+            <View style={styles.slashes}>
+              <Text style={styles.slashText}>╱\n╱\n╱</Text>
+            </View>
+            <View style={styles.dataOnlyText}>
+              <Text style={styles.dataOnlyNumber}>{pace}</Text>
+              <Text style={styles.dataOnlyLabel}>RITMO</Text>
+            </View>
+          </View>
+          <View style={styles.dataOnlyBadge}>
+            <Text style={styles.dataOnlyBrand}>MRUNNING</Text>
+          </View>
+        </View>
+      )}
 
       {kind === 'route' && (
         <>
@@ -272,18 +308,82 @@ export default function MShotStory({
         </>
       )}
 
-      <View style={styles.footer}>
+      {kind !== 'dataOnly' && <View style={styles.footer}>
         <View style={styles.footerLine} />
 
         <Text style={styles.footerText}>
           CADA KILÓMETRO CUENTA
         </Text>
-      </View>
+      </View>}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  transparentStory: {
+    backgroundColor: 'transparent',
+  },
+
+  dataOnlyWrap: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 10,
+  },
+
+  dataOnlyGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 35,
+  },
+
+  slashes: {
+    width: 43,
+    justifyContent: 'center',
+  },
+
+  slashText: {
+    color: '#FFFFFF',
+    fontSize: 30,
+    fontWeight: '900',
+    lineHeight: 27,
+  },
+
+  dataOnlyText: {
+    flex: 1,
+  },
+
+  dataOnlyNumber: {
+    color: '#FFFFFF',
+    fontSize: 48,
+    fontWeight: '900',
+    letterSpacing: -1,
+  },
+
+  dataOnlyLabel: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '900',
+    marginTop: 3,
+    letterSpacing: 1,
+  },
+
+  dataOnlyBadge: {
+    backgroundColor: '#2E6BFF',
+    paddingVertical: 13,
+    paddingHorizontal: 18,
+    borderRadius: 13,
+    alignSelf: 'flex-start',
+    marginLeft: 43,
+    marginTop: 3,
+  },
+
+  dataOnlyBrand: {
+    color: '#FFFFFF',
+    fontSize: 21,
+    fontWeight: '900',
+    letterSpacing: 2,
+  },
+
   story: {
     width: 360,
     height: 640,
