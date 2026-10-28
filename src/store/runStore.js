@@ -78,3 +78,27 @@ export async function getElapsedSeconds() {
   const elapsedMs = Date.now() - Number(startedRaw) - pausedMs;
   return Math.max(0, Math.floor(elapsedMs / 1000));
 }
+
+// Identificador para separar trayectos entre pausas.
+const SEGMENT_KEY = 'mrunning_segment_id';
+
+export async function beginNewSegment() {
+  const current = Number(
+    (await AsyncStorage.getItem(SEGMENT_KEY)) || '0'
+  );
+
+  const next = current + 1;
+
+  await AsyncStorage.setItem(
+    SEGMENT_KEY,
+    String(next)
+  );
+
+  return next;
+}
+
+export async function getSegmentId() {
+  return Number(
+    (await AsyncStorage.getItem(SEGMENT_KEY)) || '0'
+  );
+}

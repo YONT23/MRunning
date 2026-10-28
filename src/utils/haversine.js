@@ -13,69 +13,83 @@ export function haversineDistance(coord1, coord2) {
   return R * c;
 }
 
-// Precisión máxima aceptada (m) reportada por el GPS.
-const MAX_ACCEPTED_ACCURACY_M = 30;
-// Velocidad máxima plausible entre lecturas (m/s). 10 m/s ≈ 2:47 min/km.
-const MAX_PLAUSIBLE_SPEED_MS = 10;
-// Salto máximo permitido dentro de un solo tramo (m).
-const MAX_SEGMENT_METERS = 150;
 
-export function isValidPoint(point) {
-  return point.accuracy == null || point.accuracy <= MAX_ACCEPTED_ACCURACY_M;
+// MPrecision: segmentación conservadora.
+// No se unen intervalos largos ni segmentos de pausa.
+const MAX_ACCEPTED_ACCURACY_M = 35;
+
+export function isValidPoint(p) {
+  return p &&
+    Number.isFinite(p.latitude) &&
+    Number.isFinite(p.longitude) &&
+    Math.abs(p.latitude) <= 90 &&
+    Math.abs(p.longitude) <= 180 &&
+    Number.isFinite(p.timestamp) &&
+    Number.isFinite(p.accuracy) &&
+    p.accuracy > 0 &&
+    p.accuracy <= MAX_ACCEPTED_ACCURACY_M;
 }
 
-function median3(a, b, c) {
-  return a + b + c - Math.max(a, b, c) - Math.min(a, b, c);
-}
-
-// Filtro anti-picos: quita lecturas con precisión mala y suaviza cada
-// posición con la mediana de sus vecinas. Un rebote aislado del GPS
-// desaparece en vez de sumar distancia de ida y vuelta.
 export function smoothPoints(points) {
-  const valid = (points || []).filter((p) => isValidPoint(p));
-  if (valid.length < 3) return valid;
-  const out = [valid[0]];
-  for (let i = 1; i < valid.length - 1; i++) {
-    const prev = valid[i - 1];
-    const cur = valid[i];
-    const next = valid[i + 1];
-    out.push({
-      ...cur,
-      latitude: median3(prev.latitude, cur.latitude, next.latitude),
-      longitude: median3(prev.longitude, cur.longitude, next.longitude),
-    });
-  }
-  out.push(valid[valid.length - 1]);
-  return out;
+  // No alterar coordenadas originales mediante
+  // medianas que podrían recortar curvas reales.
+  return (points || []).filter(isValidPoint);
 }
 
-// Separa los tramos aceptados de los descartados. Es la única fuente de
-// verdad para la distancia, así todo sale consistente.
 export function walkSegments(points) {
-  const total = points ? points.length : 0;
+  const total = Array.isArray(points)
+    ? points.length
+    : 0;
+
   const pts = smoothPoints(points);
   const segments = [];
+
   let rejectedSpeedSegments = 0;
   let rejectedSpeedMeters = 0;
-  let last = null;
+  let rejectedGapSegments = 0;
+  let anchor = null;
 
   for (const p of pts) {
-    if (!last) {
-      last = p;
+    if (!anchor) {
+      anchor = p;
       continue;
     }
-    const dist = haversineDistance(last, p);
-    const dt = (p.timestamp - last.timestamp) / 1000;
-    if (dt > 0) {
-      const speed = dist / dt;
-      if (speed <= MAX_PLAUSIBLE_SPEED_MS && dist <= MAX_SEGMENT_METERS) {
-        segments.push({ from: last, to: p, dist, dt });
-      } else {
-        rejectedSpeedSegments++;
-        rejectedSpeedMeters += dist;
-      }
+
+    const dt = (p.timestamp - anchor.timestamp) / 1000;
+
+    if (
+      p.segmentId !== anchor.segmentId ||
+      dt > 12
+    ) {
+      rejectedGapSegments++;
+      anchor = p;
+      continue;
     }
-    last = p;
+
+    if (dt <= 0) continue;
+
+    const dist = haversineDistance(anchor, p);
+
+    if (
+      dist / dt > 10 ||
+      dist > 150
+    ) {
+      rejectedSpeedSegments++;
+      rejectedSpeedMeters += dist;
+      anchor = p;
+      continue;
+    }
+
+    if (dist < 3) continue;
+
+    segments.push({
+      from: anchor,
+      to: p,
+      dist,
+      dt,
+    });
+
+    anchor = p;
   }
 
   return {
@@ -84,6 +98,7 @@ export function walkSegments(points) {
     rejectedAccuracy: total - pts.length,
     rejectedSpeedSegments,
     rejectedSpeedMeters,
+    rejectedGapSegments,
   };
 }
 
@@ -95,6 +110,7 @@ export function computeDistanceWithStats(points) {
     rejectedAccuracy: w.rejectedAccuracy,
     rejectedSpeedSegments: w.rejectedSpeedSegments,
     rejectedSpeedMeters: w.rejectedSpeedMeters,
+    rejectedGapSegments: w.rejectedGapSegments,
     usedSegments: w.segments.length,
   };
 }

@@ -1,5 +1,6 @@
 import * as TaskManager from 'expo-task-manager';
-import { appendPoint, getStatus } from '../store/runStore';
+import { appendPoint, getStatus, getSegmentId } from '../store/runStore';
+import { evaluateAutoPause } from '../store/autoPauseStore';
 
 export const LOCATION_TASK_NAME = 'RBT_BACKGROUND_LOCATION_TASK';
 
@@ -13,11 +14,15 @@ TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }) => {
   if (!data) return;
 
   const status = await getStatus();
-  if (status !== 'running') return; // en pausa se ignoran lecturas
+  if (status !== 'running' && status !== 'auto-paused') return;
 
   const { locations } = data;
-  for (const loc of locations) {
+  for (const loc of locations || []) {
+    const state = await evaluateAutoPause(loc);
+    if (state !== 'running') continue;
+    const segmentId = await getSegmentId();
     await appendPoint({
+      segmentId,
       latitude: loc.coords.latitude,
       longitude: loc.coords.longitude,
       accuracy: loc.coords.accuracy,

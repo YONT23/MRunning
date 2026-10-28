@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { smoothPoints } from '../utils/haversine';
+import * as FileSystem from 'expo-file-system';
 import { computeSplits, computeElevationGain, averageAccuracy } from '../utils/analysis';
 
 const HISTORY_KEY = 'rbt_run_history';
@@ -23,7 +24,7 @@ export async function getHistory() {
 }
 
 // Guarda un recorrido terminado con sus parciales, desnivel y precisión GPS.
-export async function addRun({ distance, elapsed, activityType, points }) {
+export async function addRun({ distance, elapsed, activityType, points, trainingPlan=null, precision=null }) {
   const history = await getHistory();
   const entry = {
     id: `${Date.now()}`,
@@ -31,11 +32,38 @@ export async function addRun({ distance, elapsed, activityType, points }) {
     distance, // metros
     elapsed, // segundos
     activityType,
+    trainingPlan,
+    precision,
     routePreview: downsample(smoothPoints(points), MAX_ROUTE_POINTS),
     splits: computeSplits(points),
     elevationGain: computeElevationGain(points),
     avgAccuracy: averageAccuracy(points),
   };
+  // Guardar las coordenadas completas para auditoría.
+  try {
+    const dir = FileSystem.documentDirectory +
+      'mrunning-tracks/';
+
+    await FileSystem.makeDirectoryAsync(
+      dir,
+      { intermediates: true }
+    );
+
+    const file = dir + entry.id + '.json';
+
+    await FileSystem.writeAsStringAsync(
+      file,
+      JSON.stringify(points)
+    );
+
+    entry.rawTrackUri = file;
+  } catch (e) {
+    console.warn(
+      'No se guardó el track completo:',
+      e.message
+    );
+  }
+
   const updated = [entry, ...history].slice(0, MAX_ENTRIES);
   await AsyncStorage.setItem(HISTORY_KEY, JSON.stringify(updated));
   return entry;
