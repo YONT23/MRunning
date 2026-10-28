@@ -24,6 +24,7 @@ import * as FileSystem from 'expo-file-system';
 
 import { getHistory } from '../store/historyStore';
 import MShotStory from '../components/MShotStory';
+import MShotExport from '../components/MShotExport';
 
 const BLUE = '#2E6BFF';
 
@@ -52,6 +53,7 @@ export default function ShareCardsScreen({
   const [saving, setSaving] = useState(false);
 
   const shotRef = useRef(null);
+  const exportRef = useRef(null);
 
   useEffect(() => {
     let active = true;
@@ -160,7 +162,7 @@ export default function ShareCardsScreen({
         );
       }
 
-      const uri = await shotRef.current.capture();
+      const uri = await exportRef.current.capture();
 
       await MediaLibrary.saveToLibraryAsync(uri);
 
@@ -290,6 +292,15 @@ export default function ShareCardsScreen({
             : 'Se utiliza la vista previa del historial'}
         </Text>
       </ScrollView>
+
+
+      <MShotExport
+        ref={exportRef}
+        entry={entry}
+        points={points}
+        photoUri={photoUri}
+        kind={TEMPLATES[index][0]}
+      />
 
       <View style={styles.actions}>
         <TouchableOpacity
