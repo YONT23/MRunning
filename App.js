@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
-import { View } from 'react-native';
+import { View, useColorScheme } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 // Debe importarse una vez en la raíz para registrar el task de ubicación.
@@ -17,10 +17,13 @@ import ShareCardsScreen from './src/screens/ShareCardsScreen';
 import MainTabs from './src/navigation/MainTabs';
 import { getOnboarded } from './src/store/settingsStore';
 import { colors } from './src/theme/colors';
+import {darkPalette,lightPalette} from './src/theme/useAppTheme';
 
 const Stack = createNativeStackNavigator();
 
 export default function App() {
+  const isLight=useColorScheme()==='light';
+  const themePalette=isLight?lightPalette:darkPalette;
   const [initialRoute, setInitialRoute] = useState(null);
 
   useEffect(() => {
@@ -33,8 +36,8 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      <NavigationContainer>
-        <StatusBar style="light" />
+      <NavigationContainer theme={{dark:!isLight,colors:{primary:themePalette.blue,background:themePalette.bg,card:themePalette.surface,text:themePalette.text,border:themePalette.border,notification:themePalette.red}}}>
+        <StatusBar style={isLight?"dark":"light"} />
         <Stack.Navigator
           initialRouteName={initialRoute}
           screenOptions={{
