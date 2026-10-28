@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
   canvas: {
     width: EXPORT_WIDTH,
     height: EXPORT_HEIGHT,
-    backgroundColor: '#0A0C10',
+    backgroundColor: 'transparent',
     overflow: 'hidden',
   },
 

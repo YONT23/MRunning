@@ -10,6 +10,7 @@ import {
 import Svg, {
   Path,
   Circle,
+  Line,
 } from 'react-native-svg';
 
 import { routeGeometry } from '../utils/mshotRoute';
@@ -136,7 +137,7 @@ export default function MShotStory({
       style={[styles.story, transparent && styles.transparentStory]}
       collapsable={false}
     >
-      {photoUri && (
+      {photoUri && !transparent && (
         <Image
           source={{ uri: photoUri }}
           resizeMode="cover"
@@ -169,28 +170,58 @@ export default function MShotStory({
         <View style={styles.dataOnlyWrap}>
           <View style={styles.dataOnlyGroup}>
             <View style={styles.slashes}>
-              <Text style={styles.slashText}>╱\n╱\n╱</Text>
+              <Svg width={34} height={92} viewBox="0 0 34 92">
+                <Line x1="3" y1="4" x2="28" y2="24"
+                  stroke="#FFFFFF" strokeWidth="4"
+                  strokeLinecap="round" />
+                <Line x1="3" y1="36" x2="28" y2="56"
+                  stroke="#FFFFFF" strokeWidth="4"
+                  strokeLinecap="round" />
+                <Line x1="3" y1="68" x2="28" y2="88"
+                  stroke="#FFFFFF" strokeWidth="4"
+                  strokeLinecap="round" />
+              </Svg>
             </View>
             <View style={styles.dataOnlyText}>
-              <Text style={styles.dataOnlyNumber}>{km}</Text>
+              <Text style={styles.dataOnlyNumber} numberOfLines={1} adjustsFontSizeToFit>{km}</Text>
               <Text style={styles.dataOnlyLabel}>DISTANCIA</Text>
             </View>
           </View>
           <View style={styles.dataOnlyGroup}>
             <View style={styles.slashes}>
-              <Text style={styles.slashText}>╱\n╱\n╱</Text>
+              <Svg width={34} height={92} viewBox="0 0 34 92">
+                <Line x1="3" y1="4" x2="28" y2="24"
+                  stroke="#FFFFFF" strokeWidth="4"
+                  strokeLinecap="round" />
+                <Line x1="3" y1="36" x2="28" y2="56"
+                  stroke="#FFFFFF" strokeWidth="4"
+                  strokeLinecap="round" />
+                <Line x1="3" y1="68" x2="28" y2="88"
+                  stroke="#FFFFFF" strokeWidth="4"
+                  strokeLinecap="round" />
+              </Svg>
             </View>
             <View style={styles.dataOnlyText}>
-              <Text style={styles.dataOnlyNumber}>{time}</Text>
+              <Text style={styles.dataOnlyNumber} numberOfLines={1} adjustsFontSizeToFit>{time}</Text>
               <Text style={styles.dataOnlyLabel}>TIEMPO</Text>
             </View>
           </View>
           <View style={styles.dataOnlyGroup}>
             <View style={styles.slashes}>
-              <Text style={styles.slashText}>╱\n╱\n╱</Text>
+              <Svg width={34} height={92} viewBox="0 0 34 92">
+                <Line x1="3" y1="4" x2="28" y2="24"
+                  stroke="#FFFFFF" strokeWidth="4"
+                  strokeLinecap="round" />
+                <Line x1="3" y1="36" x2="28" y2="56"
+                  stroke="#FFFFFF" strokeWidth="4"
+                  strokeLinecap="round" />
+                <Line x1="3" y1="68" x2="28" y2="88"
+                  stroke="#FFFFFF" strokeWidth="4"
+                  strokeLinecap="round" />
+              </Svg>
             </View>
             <View style={styles.dataOnlyText}>
-              <Text style={styles.dataOnlyNumber}>{pace}</Text>
+              <Text style={styles.dataOnlyNumber} numberOfLines={1} adjustsFontSizeToFit>{pace}</Text>
               <Text style={styles.dataOnlyLabel}>RITMO</Text>
             </View>
           </View>
@@ -333,7 +364,7 @@ const styles = StyleSheet.create({
   dataOnlyGroup: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 35,
+    marginBottom: 28,
   },
 
   slashes: {
@@ -354,7 +385,7 @@ const styles = StyleSheet.create({
 
   dataOnlyNumber: {
     color: '#FFFFFF',
-    fontSize: 48,
+    fontSize: 43,
     fontWeight: '900',
     letterSpacing: -1,
   },

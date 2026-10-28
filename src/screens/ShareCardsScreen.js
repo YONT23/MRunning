@@ -158,7 +158,7 @@ export default function ShareCardsScreen({
         );
       }
 
-      if (!shotRef.current) {
+      if (!exportRef.current) {
         throw new Error(
           'La plantilla todavía no está lista.'
         );
@@ -205,7 +205,7 @@ export default function ShareCardsScreen({
         </TouchableOpacity>
 
         <Text style={styles.title}>
-          MShot 2.0
+          MShot 2.3
         </Text>
 
         <View style={{ width: 55 }} />
@@ -279,7 +279,6 @@ export default function ShareCardsScreen({
                 points={points}
                 photoUri={photoUri}
                 kind={TEMPLATES[index][0]}
-        transparent={transparent}
                 transparent={transparent}
               />
             </ViewShot>
@@ -304,6 +303,8 @@ export default function ShareCardsScreen({
         points={points}
         photoUri={photoUri}
         kind={TEMPLATES[index][0]}
+      
+        transparent={transparent}
       />
 
       <TouchableOpacity
